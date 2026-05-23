@@ -1,0 +1,899 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="PT Tracker">
+<title>PT Tracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #F7F5F0;
+  --surface: #FFFFFF;
+  --surface2: #F0EDE8;
+  --border: rgba(0,0,0,0.08);
+  --border2: rgba(0,0,0,0.14);
+  --text: #1A1815;
+  --text2: #6B6760;
+  --text3: #9E9B96;
+  --teal: #1D9E75;
+  --teal-light: #E1F5EE;
+  --teal-dark: #0F6E56;
+  --amber: #BA7517;
+  --amber-light: #FAEEDA;
+  --blue: #185FA5;
+  --blue-light: #E6F1FB;
+  --purple: #534AB7;
+  --purple-light: #EEEDFE;
+  --red: #A32D2D;
+  --red-light: #FCEBEB;
+  --radius: 12px;
+  --radius-sm: 8px;
+  --shadow: 0 2px 12px rgba(0,0,0,0.06);
+  --shadow-lg: 0 8px 32px rgba(0,0,0,0.12);
+  --font: 'DM Sans', sans-serif;
+  --mono: 'DM Mono', monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #141412;
+    --surface: #1E1D1A;
+    --surface2: #272521;
+    --border: rgba(255,255,255,0.08);
+    --border2: rgba(255,255,255,0.14);
+    --text: #F0EDE8;
+    --text2: #A09D98;
+    --text3: #6B6860;
+    --teal: #5DCAA5;
+    --teal-light: #0F3D2E;
+    --teal-dark: #9FE1CB;
+    --amber: #EF9F27;
+    --amber-light: #3A2A0A;
+    --blue: #85B7EB;
+    --blue-light: #0C2A4A;
+    --purple: #AFA9EC;
+    --purple-light: #26215C;
+    --red: #F09595;
+    --red-light: #3D1515;
+    --shadow: 0 2px 12px rgba(0,0,0,0.3);
+    --shadow-lg: 0 8px 32px rgba(0,0,0,0.5);
+  }
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;font-family:var(--font);background:var(--bg);color:var(--text);font-size:16px;line-height:1.5}
+body{display:flex;flex-direction:column;max-width:480px;margin:0 auto;min-height:100vh;min-height:100dvh}
+
+/* HEADER */
+.header{padding:env(safe-area-inset-top,16px) 20px 0;padding-top:max(env(safe-area-inset-top),16px)}
+.header-inner{display:flex;align-items:center;justify-content:space-between;padding-bottom:4px}
+.app-title{font-size:13px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--text3);font-family:var(--mono)}
+.date-label{font-size:13px;color:var(--text3);font-family:var(--mono)}
+.sync-btn{display:flex;align-items:center;gap:6px;font-size:12px;padding:5px 10px;border-radius:20px;border:1px solid var(--border2);background:var(--surface);color:var(--text2);cursor:pointer;font-family:var(--font);transition:all 0.15s}
+.sync-btn:hover{background:var(--surface2)}
+.sync-btn.synced{color:var(--teal);border-color:var(--teal)}
+.sync-dot{width:6px;height:6px;border-radius:50%;background:currentColor}
+
+/* NAV */
+.nav{display:flex;gap:2px;padding:12px 16px 0;background:var(--bg)}
+.nav-btn{flex:1;padding:8px 4px;font-size:11px;font-weight:500;letter-spacing:0.04em;text-transform:uppercase;font-family:var(--mono);border:none;background:transparent;color:var(--text3);cursor:pointer;border-bottom:2px solid transparent;transition:all 0.15s;display:flex;flex-direction:column;align-items:center;gap:3px}
+.nav-btn svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+.nav-btn.active{color:var(--text);border-bottom-color:var(--text)}
+.nav-divider{height:1px;background:var(--border);margin:0 16px}
+
+/* CONTENT */
+.content{flex:1;overflow-y:auto;padding:20px 16px;padding-bottom:calc(env(safe-area-inset-bottom,16px) + 16px)}
+.page{display:none}
+.page.active{display:block}
+
+/* CARDS */
+.card{background:var(--surface);border-radius:var(--radius);border:1px solid var(--border);padding:16px;margin-bottom:12px}
+.card-title{font-size:11px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:var(--text3);font-family:var(--mono);margin-bottom:12px}
+
+/* METRICS */
+.metrics{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:16px}
+.metric{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px}
+.metric-val{font-size:28px;font-weight:300;color:var(--text);line-height:1;margin-bottom:2px}
+.metric-val span{font-size:14px;font-weight:500;color:var(--text3)}
+.metric-lbl{font-size:11px;color:var(--text3);font-family:var(--mono);letter-spacing:0.04em}
+.streak-val{color:var(--amber)}
+
+/* EXERCISE ROWS */
+.ex-item{display:flex;align-items:flex-start;gap:12px;padding:12px 0;border-bottom:1px solid var(--border)}
+.ex-item:last-child{border-bottom:none;padding-bottom:0}
+.ex-item:first-child{padding-top:0}
+.check-circle{width:24px;height:24px;border-radius:50%;border:1.5px solid var(--border2);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;margin-top:1px;transition:all 0.2s;background:transparent}
+.check-circle.done{background:var(--teal);border-color:var(--teal)}
+.check-circle svg{width:12px;height:12px;stroke:#fff;fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;opacity:0;transition:opacity 0.15s}
+.check-circle.done svg{opacity:1}
+.ex-info{flex:1;min-width:0}
+.ex-name{font-size:15px;font-weight:500;color:var(--text);margin-bottom:2px}
+.ex-meta{font-size:12px;color:var(--text3);font-family:var(--mono)}
+.progress-wrap{display:flex;align-items:center;gap:8px;margin-top:6px}
+.progress-track{flex:1;height:3px;background:var(--surface2);border-radius:2px;overflow:hidden}
+.progress-fill{height:100%;background:var(--teal);border-radius:2px;transition:width 0.3s ease}
+.progress-pct{font-size:11px;color:var(--text3);font-family:var(--mono);width:32px;text-align:right}
+
+/* TIME BLOCKS */
+.block{border-radius:var(--radius);padding:14px;margin-bottom:10px;border:1px solid}
+.block.morning{background:var(--blue-light);border-color:rgba(24,95,165,0.15)}
+.block.midday{background:var(--teal-light);border-color:rgba(29,158,117,0.15)}
+.block.afternoon{background:var(--amber-light);border-color:rgba(186,117,23,0.15)}
+.block.evening{background:var(--purple-light);border-color:rgba(83,74,183,0.15)}
+.block-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.block-label{font-size:11px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;font-family:var(--mono)}
+.block-label.morning{color:var(--blue)}
+.block-label.midday{color:var(--teal)}
+.block-label.afternoon{color:var(--amber)}
+.block-label.evening{color:var(--purple)}
+.block-time{font-size:11px;color:var(--text3);font-family:var(--mono)}
+
+/* BADGES */
+.badge{display:inline-block;font-size:10px;font-weight:600;letter-spacing:0.05em;text-transform:uppercase;padding:2px 7px;border-radius:20px;font-family:var(--mono)}
+.badge-teal{background:var(--teal-light);color:var(--teal-dark)}
+.badge-blue{background:var(--blue-light);color:var(--blue)}
+.badge-amber{background:var(--amber-light);color:var(--amber)}
+.badge-purple{background:var(--purple-light);color:var(--purple)}
+.badge-neutral{background:var(--surface2);color:var(--text2)}
+
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:9px 16px;border-radius:var(--radius-sm);border:1px solid var(--border2);background:var(--surface);color:var(--text);font-size:13px;font-weight:500;font-family:var(--font);cursor:pointer;transition:all 0.15s}
+.btn:hover{background:var(--surface2)}
+.btn:active{transform:scale(0.98)}
+.btn svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.btn-primary{background:var(--teal);border-color:var(--teal);color:#fff}
+.btn-primary:hover{background:var(--teal-dark);border-color:var(--teal-dark)}
+.btn-danger{color:var(--red);border-color:var(--red-light)}
+.btn-danger:hover{background:var(--red-light)}
+.btn-sm{padding:5px 10px;font-size:12px}
+.btn-row{display:flex;gap:8px;justify-content:flex-end;margin-top:16px}
+.fab{position:fixed;bottom:calc(env(safe-area-inset-bottom,16px) + 80px);right:20px;width:48px;height:48px;border-radius:50%;background:var(--teal);border:none;color:#fff;font-size:22px;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:var(--shadow-lg);transition:transform 0.15s}
+.fab:active{transform:scale(0.95)}
+.fab svg{width:22px;height:22px;stroke:#fff;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+
+/* SECTION HEADER */
+.section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.section-title{font-size:11px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:var(--text3);font-family:var(--mono)}
+
+/* EMPTY STATE */
+.empty{text-align:center;padding:40px 20px;color:var(--text3)}
+.empty svg{width:40px;height:40px;stroke:var(--text3);fill:none;stroke-width:1;stroke-linecap:round;stroke-linejoin:round;margin:0 auto 12px;display:block}
+.empty p{font-size:14px;line-height:1.6}
+.empty strong{color:var(--text2)}
+
+/* LIBRARY */
+.lib-item{display:flex;align-items:flex-start;gap:12px;padding:12px 0;border-bottom:1px solid var(--border)}
+.lib-item:last-child{border-bottom:none;padding-bottom:0}
+.lib-item:first-child{padding-top:0}
+.lib-info{flex:1}
+.lib-name{font-size:15px;font-weight:500;margin-bottom:3px}
+.lib-meta{font-size:12px;color:var(--text3);font-family:var(--mono);margin-bottom:4px}
+.lib-notes{font-size:12px;color:var(--text2);font-style:italic}
+
+/* PROGRESS */
+.week-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)}
+.week-row:last-child{border-bottom:none}
+.week-day{font-size:12px;color:var(--text3);font-family:var(--mono);width:80px;flex-shrink:0}
+.week-pct{font-size:12px;color:var(--text2);font-family:var(--mono);width:36px;text-align:right;flex-shrink:0}
+.week-pain{font-size:11px;color:var(--text3);font-family:var(--mono);width:56px;text-align:right;flex-shrink:0}
+
+/* FORMS */
+.form-group{margin-bottom:14px}
+.form-label{font-size:11px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:var(--text3);font-family:var(--mono);display:block;margin-bottom:6px}
+input[type=text],input[type=number],input[type=time],select,textarea{width:100%;padding:9px 12px;border:1px solid var(--border2);border-radius:var(--radius-sm);background:var(--surface);color:var(--text);font-size:14px;font-family:var(--font);outline:none;transition:border-color 0.15s;-webkit-appearance:none}
+input:focus,select:focus,textarea:focus{border-color:var(--teal)}
+.form-row-2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.form-row-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+textarea{resize:none}
+select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236B6760' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;padding-right:30px}
+.checkbox-item{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);font-size:14px;cursor:pointer}
+.checkbox-item:last-child{border-bottom:none}
+.checkbox-item input[type=checkbox]{width:16px;height:16px;accent-color:var(--teal);cursor:pointer;flex-shrink:0}
+
+/* PAIN PICKER */
+.pain-row{display:flex;gap:8px;align-items:center}
+.pain-pip{width:28px;height:28px;border-radius:50%;border:2px solid transparent;cursor:pointer;transition:all 0.15s;opacity:0.35}
+.pain-pip.active{opacity:1;transform:scale(1.15)}
+.pain-pip:hover{opacity:0.8}
+
+/* MODAL */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:200;align-items:flex-end;justify-content:center;backdrop-filter:blur(2px)}
+.modal-bg.open{display:flex}
+.modal{background:var(--surface);border-radius:var(--radius) var(--radius) 0 0;padding:20px;width:100%;max-width:480px;max-height:92vh;overflow-y:auto;padding-bottom:calc(env(safe-area-inset-bottom,20px) + 20px);animation:slideUp 0.25s ease}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.modal-handle{width:36px;height:4px;background:var(--border2);border-radius:2px;margin:0 auto 16px}
+.modal h3{font-size:17px;font-weight:600;margin-bottom:16px}
+
+/* TOAST */
+.toast{position:fixed;bottom:calc(env(safe-area-inset-bottom,16px) + 90px);left:50%;transform:translateX(-50%) translateY(20px);background:var(--text);color:var(--bg);font-size:13px;padding:8px 16px;border-radius:20px;opacity:0;transition:all 0.3s;pointer-events:none;white-space:nowrap;z-index:300}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* DRIVE SETUP */
+.drive-setup{background:var(--blue-light);border:1px solid rgba(24,95,165,0.2);border-radius:var(--radius);padding:16px;margin-bottom:16px}
+.drive-setup p{font-size:13px;color:var(--blue);line-height:1.6}
+.drive-setup strong{font-weight:600}
+
+/* NOTES LOG */
+.log-note{font-size:12px;color:var(--text2);font-style:italic;margin-top:2px}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-inner">
+    <span class="app-title">PT Tracker</span>
+    <span class="date-label" id="header-date"></span>
+  </div>
+  <div style="display:flex;gap:8px;padding:8px 0 4px;align-items:center">
+    <button class="sync-btn" id="sync-btn" onclick="handleSync()">
+      <span class="sync-dot"></span>
+      <span id="sync-label">Connect Drive</span>
+    </button>
+    <button class="btn btn-sm" onclick="exportData()" title="Export backup">
+      <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+    </button>
+    <button class="btn btn-sm" onclick="importData()" title="Import backup">
+      <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+    </button>
+  </div>
+</div>
+
+<div class="nav">
+  <button class="nav-btn active" onclick="switchTab('today')" id="nav-today">
+    <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><polyline points="9 16 11 18 15 14"/></svg>
+    Today
+  </button>
+  <button class="nav-btn" onclick="switchTab('schedule')" id="nav-schedule">
+    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+    Schedule
+  </button>
+  <button class="nav-btn" onclick="switchTab('library')" id="nav-library">
+    <svg viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+    Library
+  </button>
+  <button class="nav-btn" onclick="switchTab('progress')" id="nav-progress">
+    <svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+    Progress
+  </button>
+</div>
+<div class="nav-divider"></div>
+
+<div class="content">
+
+  <!-- TODAY -->
+  <div class="page active" id="tab-today">
+    <div class="metrics" id="today-metrics"></div>
+    <div id="today-blocks"></div>
+  </div>
+
+  <!-- SCHEDULE -->
+  <div class="page" id="tab-schedule">
+    <div class="section-header">
+      <span class="section-title">Time blocks</span>
+      <button class="btn btn-sm" onclick="openSchedModal()">
+        <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Add block
+      </button>
+    </div>
+    <div id="schedule-list"></div>
+  </div>
+
+  <!-- LIBRARY -->
+  <div class="page" id="tab-library">
+    <div class="section-header">
+      <span class="section-title">Exercise library</span>
+      <button class="btn btn-sm" onclick="openExModal()">
+        <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Add exercise
+      </button>
+    </div>
+    <div id="library-list"></div>
+  </div>
+
+  <!-- PROGRESS -->
+  <div class="page" id="tab-progress">
+    <div id="progress-content"></div>
+  </div>
+
+</div>
+
+<!-- FAB -->
+<button class="fab" onclick="openLogModal()" aria-label="Log session">
+  <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+</button>
+
+<!-- LOG SESSION MODAL -->
+<div class="modal-bg" id="log-modal-bg" onclick="closeBg(event,'log-modal-bg')">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <h3>Log session</h3>
+    <div class="form-group">
+      <label class="form-label">Exercise</label>
+      <select id="log-ex"></select>
+    </div>
+    <div class="form-row-2">
+      <div class="form-group">
+        <label class="form-label">Sets done</label>
+        <input type="number" id="log-sets" value="3" min="1">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Reps per set</label>
+        <input type="number" id="log-reps" value="10" min="1">
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Pain level (1 = none · 5 = severe)</label>
+      <div class="pain-row" id="pain-picker">
+        <div class="pain-pip active" data-v="1" style="background:#5DCAA5" onclick="setPain(1)"></div>
+        <div class="pain-pip" data-v="2" style="background:#97C459" onclick="setPain(2)"></div>
+        <div class="pain-pip" data-v="3" style="background:#EF9F27" onclick="setPain(3)"></div>
+        <div class="pain-pip" data-v="4" style="background:#F09595" onclick="setPain(4)"></div>
+        <div class="pain-pip" data-v="5" style="background:#E24B4A" onclick="setPain(5)"></div>
+        <span id="pain-label" style="font-size:12px;color:var(--text3);margin-left:6px;font-family:var(--mono)">1 — None</span>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Notes (optional)</label>
+      <textarea id="log-notes" rows="2" placeholder="e.g. felt tightness at 90°"></textarea>
+    </div>
+    <div class="btn-row">
+      <button class="btn" onclick="closeModal('log-modal-bg')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveLog()">
+        <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+        Save session
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD EXERCISE MODAL -->
+<div class="modal-bg" id="ex-modal-bg" onclick="closeBg(event,'ex-modal-bg')">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <h3>Add exercise</h3>
+    <div class="form-group">
+      <label class="form-label">Exercise name</label>
+      <input type="text" id="ex-name" placeholder="e.g. Quad sets">
+    </div>
+    <div class="form-row-3">
+      <div class="form-group">
+        <label class="form-label">Sets</label>
+        <input type="number" id="ex-sets" value="3" min="1">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Reps</label>
+        <input type="number" id="ex-reps" value="10" min="1">
+      </div>
+      <div class="form-group">
+        <label class="form-label">×/day</label>
+        <input type="number" id="ex-freq" value="2" min="1">
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Category</label>
+      <select id="ex-cat">
+        <option value="strength">Strength</option>
+        <option value="flexibility">Flexibility / ROM</option>
+        <option value="balance">Balance</option>
+        <option value="cardio">Cardio</option>
+        <option value="other">Other</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Form cues / notes</label>
+      <textarea id="ex-notes" rows="2" placeholder="e.g. keep knee behind toes"></textarea>
+    </div>
+    <div class="btn-row">
+      <button class="btn" onclick="closeModal('ex-modal-bg')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveExercise()">
+        <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+        Add exercise
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD SCHEDULE MODAL -->
+<div class="modal-bg" id="sched-modal-bg" onclick="closeBg(event,'sched-modal-bg')">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <h3>Add time block</h3>
+    <div class="form-row-2">
+      <div class="form-group">
+        <label class="form-label">Time of day</label>
+        <select id="sched-time">
+          <option value="morning">Morning</option>
+          <option value="midday">Midday</option>
+          <option value="afternoon">Afternoon</option>
+          <option value="evening">Evening</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Start time</label>
+        <input type="time" id="sched-start" value="08:00">
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Exercises in this block</label>
+      <div id="sched-ex-checks" style="max-height:200px;overflow-y:auto"></div>
+    </div>
+    <div class="btn-row">
+      <button class="btn" onclick="closeModal('sched-modal-bg')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveSchedule()">
+        <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+        Save block
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- IMPORT MODAL -->
+<div class="modal-bg" id="import-modal-bg" onclick="closeBg(event,'import-modal-bg')">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <h3>Restore from backup</h3>
+    <p style="font-size:13px;color:var(--text2);margin-bottom:12px">Paste your exported backup text below. This will replace all current data.</p>
+    <textarea id="import-text" rows="6" placeholder="Paste backup data here..."></textarea>
+    <div class="btn-row">
+      <button class="btn" onclick="closeModal('import-modal-bg')">Cancel</button>
+      <button class="btn btn-primary" onclick="doImport()">Restore</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const STORAGE_KEY = 'pt_tracker_v1';
+const today = new Date().toISOString().slice(0,10);
+let painSel = 1;
+let driveConnected = false;
+let driveFileId = null;
+
+let state = { exercises: [], logs: [], schedule: [] };
+
+const painLabels = ['','None','Mild','Moderate','Strong','Severe'];
+const catBadge = { strength:'badge-blue', flexibility:'badge-teal', balance:'badge-purple', cardio:'badge-amber', other:'badge-neutral' };
+
+function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
+
+function fmt12(t) {
+  if (!t) return '';
+  const [h,m] = t.split(':');
+  const hr = +h;
+  return (hr % 12 || 12) + ':' + m + (hr < 12 ? ' am' : ' pm');
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+function save() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  if (driveConnected) syncToDrive();
+}
+
+function load() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) state = { ...state, ...JSON.parse(raw) };
+  } catch(e) {}
+  renderAll();
+}
+
+/* ---- TABS ---- */
+function switchTab(t) {
+  ['today','schedule','library','progress'].forEach(id => {
+    document.getElementById('tab-'+id).classList.toggle('active', id===t);
+    document.getElementById('nav-'+id).classList.toggle('active', id===t);
+  });
+  if (t==='progress') renderProgress();
+}
+
+/* ---- DATE ---- */
+document.getElementById('header-date').textContent = new Date().toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
+
+/* ---- RENDER TODAY ---- */
+function renderToday() {
+  const tl = state.logs.filter(l => l.date===today);
+  const done = new Set(tl.map(l=>l.exId)).size;
+  const total = state.exercises.length;
+  const streak = calcStreak();
+  const avgPain = tl.length ? (tl.reduce((a,l)=>a+l.pain,0)/tl.length).toFixed(1) : null;
+
+  document.getElementById('today-metrics').innerHTML = `
+    <div class="metric">
+      <div class="metric-val">${done}<span>/${total}</span></div>
+      <div class="metric-lbl">Exercises done</div>
+    </div>
+    <div class="metric">
+      <div class="metric-val">${tl.length}</div>
+      <div class="metric-lbl">Sessions logged</div>
+    </div>
+    <div class="metric">
+      <div class="metric-val">${avgPain || '—'}</div>
+      <div class="metric-lbl">Avg pain</div>
+    </div>
+    <div class="metric">
+      <div class="metric-val streak-val">${streak}</div>
+      <div class="metric-lbl">Day streak 🔥</div>
+    </div>`;
+
+  const blocksEl = document.getElementById('today-blocks');
+
+  if (state.exercises.length===0) {
+    blocksEl.innerHTML = `<div class="empty">
+      <svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+      <p>No exercises yet.<br><strong>Add exercises in the Library tab</strong><br>then build your schedule.</p>
+    </div>`;
+    return;
+  }
+
+  const order = {morning:0,midday:1,afternoon:2,evening:3};
+
+  if (state.schedule.length > 0) {
+    const sorted = [...state.schedule].sort((a,b)=>order[a.time]-order[b.time]);
+    blocksEl.innerHTML = sorted.map(block => {
+      const rows = block.exercises.map(eid => {
+        const ex = state.exercises.find(e=>e.id===eid);
+        if (!ex) return '';
+        const logged = tl.filter(l=>l.exId===eid);
+        const pct = Math.min(100, Math.round(logged.length/ex.freq*100));
+        return `<div class="ex-item">
+          <div class="check-circle ${logged.length>=ex.freq?'done':''}" onclick="quickLog('${eid}')" role="button" aria-label="Complete ${ex.name}">
+            <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+          </div>
+          <div class="ex-info">
+            <div class="ex-name">${ex.name}</div>
+            <div class="ex-meta">${ex.sets} sets · ${ex.reps} reps · ${logged.length}/${ex.freq}× today</div>
+            <div class="progress-wrap">
+              <div class="progress-track"><div class="progress-fill" style="width:${pct}%"></div></div>
+              <div class="progress-pct">${pct}%</div>
+            </div>
+          </div>
+        </div>`;
+      }).join('');
+      return `<div class="block ${block.time}">
+        <div class="block-header">
+          <span class="block-label ${block.time}">${block.time.charAt(0).toUpperCase()+block.time.slice(1)}${block.start?' · '+fmt12(block.start):''}</span>
+          <span class="block-time">${block.exercises.length} exercise${block.exercises.length!==1?'s':''}</span>
+        </div>
+        ${rows || '<p style="font-size:13px;color:var(--text3)">No exercises assigned</p>'}
+      </div>`;
+    }).join('');
+  } else {
+    const rows = state.exercises.map(ex => {
+      const logged = tl.filter(l=>l.exId===ex.id);
+      const pct = Math.min(100, Math.round(logged.length/ex.freq*100));
+      return `<div class="ex-item">
+        <div class="check-circle ${logged.length>=ex.freq?'done':''}" onclick="quickLog('${ex.id}')">
+          <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+        </div>
+        <div class="ex-info">
+          <div class="ex-name">${ex.name}</div>
+          <div class="ex-meta">${ex.sets}×${ex.reps} · ${logged.length}/${ex.freq}× today</div>
+          <div class="progress-wrap">
+            <div class="progress-track"><div class="progress-fill" style="width:${pct}%"></div></div>
+            <div class="progress-pct">${pct}%</div>
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+    blocksEl.innerHTML = `<div class="card">${rows}</div>`;
+  }
+}
+
+/* ---- RENDER LIBRARY ---- */
+function renderLibrary() {
+  const el = document.getElementById('library-list');
+  if (state.exercises.length===0) {
+    el.innerHTML = `<div class="empty">
+      <svg viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+      <p>No exercises yet.<br><strong>Add your PT prescription</strong><br>to get started.</p>
+    </div>`;
+    return;
+  }
+  el.innerHTML = `<div class="card">${state.exercises.map(ex => `
+    <div class="lib-item">
+      <div class="lib-info">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+          <span class="lib-name">${ex.name}</span>
+          <span class="badge ${catBadge[ex.cat]||'badge-neutral'}">${ex.cat}</span>
+        </div>
+        <div class="lib-meta">${ex.sets} sets · ${ex.reps} reps · ${ex.freq}× per day</div>
+        ${ex.notes?`<div class="lib-notes">${ex.notes}</div>`:''}
+      </div>
+      <button class="btn btn-sm btn-danger" onclick="deleteEx('${ex.id}')" aria-label="Delete ${ex.name}">
+        <svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+      </button>
+    </div>`).join('')}</div>`;
+}
+
+/* ---- RENDER SCHEDULE ---- */
+function renderSchedule() {
+  const el = document.getElementById('schedule-list');
+  if (state.schedule.length===0) {
+    el.innerHTML = `<div class="empty">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      <p>No time blocks yet.<br><strong>Create morning, midday, or evening<br>sessions</strong> and assign exercises.</p>
+    </div>`;
+    return;
+  }
+  const order={morning:0,midday:1,afternoon:2,evening:3};
+  const sorted=[...state.schedule].sort((a,b)=>order[a.time]-order[b.time]);
+  el.innerHTML = sorted.map(b => `
+    <div class="block ${b.time}">
+      <div class="block-header">
+        <div>
+          <div class="block-label ${b.time}">${b.time.charAt(0).toUpperCase()+b.time.slice(1)}${b.start?' · '+fmt12(b.start):''}</div>
+          <div style="font-size:12px;color:var(--text3);margin-top:2px">${b.exercises.map(eid=>state.exercises.find(e=>e.id===eid)?.name||'').filter(Boolean).join(', ')||'No exercises'}</div>
+        </div>
+        <button class="btn btn-sm btn-danger" onclick="deleteBlock('${b.id}')">
+          <svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/></svg>
+        </button>
+      </div>
+    </div>`).join('');
+}
+
+/* ---- RENDER PROGRESS ---- */
+function renderProgress() {
+  const el = document.getElementById('progress-content');
+  const last7 = [];
+  for (let i=6;i>=0;i--) {
+    const d=new Date(); d.setDate(d.getDate()-i);
+    last7.push(d.toISOString().slice(0,10));
+  }
+  const weekRows = last7.map(d => {
+    const dl = state.logs.filter(l=>l.date===d);
+    const done = new Set(dl.map(l=>l.exId)).size;
+    const pct = state.exercises.length ? Math.round(done/state.exercises.length*100) : 0;
+    const avgP = dl.length ? (dl.reduce((a,l)=>a+l.pain,0)/dl.length).toFixed(1) : null;
+    const label = d===today ? 'Today' : new Date(d+'T12:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
+    return `<div class="week-row">
+      <div class="week-day">${label}</div>
+      <div class="progress-track" style="flex:1"><div class="progress-fill" style="width:${pct}%"></div></div>
+      <div class="week-pct">${pct}%</div>
+      <div class="week-pain">${avgP?'pain '+avgP:'—'}</div>
+    </div>`;
+  }).join('');
+
+  const exRows = state.exercises.map(ex => {
+    const exLogs = state.logs.filter(l=>l.exId===ex.id);
+    const avg = exLogs.length ? (exLogs.reduce((a,l)=>a+l.pain,0)/exLogs.length).toFixed(1) : null;
+    const notesArr = exLogs.filter(l=>l.notes).slice(-3).reverse();
+    return `<div class="lib-item">
+      <div class="lib-info">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:2px">
+          <span class="lib-name">${ex.name}</span>
+        </div>
+        <div class="lib-meta">${exLogs.length} sessions total${avg?' · avg pain '+avg:''}</div>
+        ${notesArr.map(l=>`<div class="log-note">${new Date(l.date+'T12:00').toLocaleDateString('en-US',{month:'short',day:'numeric'})}: ${l.notes}</div>`).join('')}
+      </div>
+    </div>`;
+  }).join('');
+
+  el.innerHTML = `
+    <div class="card" style="margin-bottom:12px">
+      <div class="card-title">Last 7 days</div>
+      ${weekRows || '<p style="font-size:13px;color:var(--text3)">No data yet</p>'}
+    </div>
+    ${state.exercises.length ? `<div class="card"><div class="card-title">Per-exercise summary</div>${exRows}</div>` : ''}`;
+}
+
+function renderAll() { renderToday(); renderLibrary(); renderSchedule(); }
+
+/* ---- STREAK ---- */
+function calcStreak() {
+  let s=0, d=new Date();
+  while(true) {
+    const ds=d.toISOString().slice(0,10);
+    if (!state.logs.some(l=>l.date===ds)) break;
+    s++; d.setDate(d.getDate()-1);
+  }
+  return s;
+}
+
+/* ---- MODALS ---- */
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+function closeBg(e,id) { if(e.target.id===id) closeModal(id); }
+
+function openLogModal() {
+  const sel = document.getElementById('log-ex');
+  sel.innerHTML = state.exercises.map(e=>`<option value="${e.id}">${e.name}</option>`).join('');
+  if (!sel.innerHTML) { showToast('Add exercises in Library first'); return; }
+  const ex = state.exercises.find(e=>e.id===sel.value);
+  if (ex) { document.getElementById('log-sets').value=ex.sets; document.getElementById('log-reps').value=ex.reps; }
+  sel.onchange = function() {
+    const ex2 = state.exercises.find(e=>e.id===this.value);
+    if (ex2) { document.getElementById('log-sets').value=ex2.sets; document.getElementById('log-reps').value=ex2.reps; }
+  };
+  setPain(1);
+  document.getElementById('log-notes').value='';
+  openModal('log-modal-bg');
+}
+
+function openExModal() { openModal('ex-modal-bg'); document.getElementById('ex-name').value=''; document.getElementById('ex-notes').value=''; }
+function openSchedModal() {
+  if (state.exercises.length===0) { showToast('Add exercises in Library first'); return; }
+  document.getElementById('sched-ex-checks').innerHTML = state.exercises.map(e=>`
+    <label class="checkbox-item"><input type="checkbox" value="${e.id}"> ${e.name} <span style="font-size:11px;color:var(--text3);margin-left:4px;font-family:var(--mono)">${e.sets}×${e.reps}</span></label>`).join('');
+  openModal('sched-modal-bg');
+}
+
+/* ---- PAIN ---- */
+function setPain(v) {
+  painSel = v;
+  document.querySelectorAll('.pain-pip').forEach(p=>p.classList.toggle('active',+p.dataset.v===v));
+  document.getElementById('pain-label').textContent = v+' — '+painLabels[v];
+}
+
+/* ---- SAVE LOG ---- */
+function saveLog() {
+  const eid = document.getElementById('log-ex').value;
+  if (!eid) return;
+  state.logs.push({ id:uid(), date:today, exId:eid, sets:+document.getElementById('log-sets').value, reps:+document.getElementById('log-reps').value, pain:painSel, notes:document.getElementById('log-notes').value.trim() });
+  save(); closeModal('log-modal-bg'); renderAll(); showToast('Session logged ✓');
+}
+
+function quickLog(eid) {
+  const ex = state.exercises.find(e=>e.id===eid);
+  if (!ex) return;
+  state.logs.push({ id:uid(), date:today, exId:eid, sets:ex.sets, reps:ex.reps, pain:1, notes:'' });
+  save(); renderToday(); showToast(ex.name+' ✓');
+}
+
+/* ---- SAVE EXERCISE ---- */
+function saveExercise() {
+  const name = document.getElementById('ex-name').value.trim();
+  if (!name) { showToast('Please enter a name'); return; }
+  state.exercises.push({ id:uid(), name, sets:+document.getElementById('ex-sets').value, reps:+document.getElementById('ex-reps').value, freq:+document.getElementById('ex-freq').value, cat:document.getElementById('ex-cat').value, notes:document.getElementById('ex-notes').value.trim() });
+  save(); closeModal('ex-modal-bg'); renderAll(); showToast('Exercise added ✓');
+}
+
+function deleteEx(id) {
+  if (!confirm('Remove this exercise?')) return;
+  state.exercises = state.exercises.filter(e=>e.id!==id);
+  state.schedule.forEach(b=>{ b.exercises=b.exercises.filter(e=>e!==id); });
+  save(); renderAll();
+}
+
+/* ---- SAVE SCHEDULE ---- */
+function saveSchedule() {
+  const checked = [...document.querySelectorAll('#sched-ex-checks input:checked')].map(i=>i.value);
+  state.schedule.push({ id:uid(), time:document.getElementById('sched-time').value, start:document.getElementById('sched-start').value, exercises:checked });
+  save(); closeModal('sched-modal-bg'); renderSchedule(); renderToday(); showToast('Block added ✓');
+}
+
+function deleteBlock(id) {
+  state.schedule = state.schedule.filter(b=>b.id!==id);
+  save(); renderSchedule(); renderToday();
+}
+
+/* ---- EXPORT / IMPORT ---- */
+function exportData() {
+  const data = JSON.stringify(state, null, 2);
+  const blob = new Blob([data], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'pt-tracker-backup-'+today+'.json';
+  a.click();
+  showToast('Backup downloaded ✓');
+}
+
+function importData() { openModal('import-modal-bg'); document.getElementById('import-text').value=''; }
+
+function doImport() {
+  try {
+    const raw = document.getElementById('import-text').value.trim();
+    const parsed = JSON.parse(raw);
+    if (!parsed.exercises || !parsed.logs) throw new Error('invalid');
+    state = { exercises:parsed.exercises||[], logs:parsed.logs||[], schedule:parsed.schedule||[] };
+    save(); closeModal('import-modal-bg'); renderAll(); showToast('Data restored ✓');
+  } catch(e) { showToast('Invalid backup data'); }
+}
+
+/* ---- GOOGLE DRIVE SYNC ---- */
+const DRIVE_FILE_NAME = 'pt-tracker-data.json';
+const DISCOVERY_DOC = 'https://www.googleapis.com/discovery/v1/apis/drive/v3/rest';
+const SCOPES = 'https://www.googleapis.com/auth/drive.appdata';
+
+function updateSyncUI(connected, label) {
+  const btn = document.getElementById('sync-btn');
+  const lbl = document.getElementById('sync-label');
+  lbl.textContent = label || (connected ? 'Drive synced' : 'Connect Drive');
+  btn.classList.toggle('synced', connected);
+}
+
+async function handleSync() {
+  if (!driveConnected) {
+    showToast('Opening Google sign-in…');
+    updateSyncUI(false,'Connecting…');
+    try {
+      await initGapi();
+      await signIn();
+    } catch(e) {
+      updateSyncUI(false,'Connect Drive');
+      showToast('Could not connect to Drive');
+    }
+  } else {
+    await syncToDrive();
+    showToast('Synced to Drive ✓');
+  }
+}
+
+function initGapi() {
+  return new Promise((resolve,reject) => {
+    if (typeof gapi === 'undefined') { reject(new Error('gapi not loaded')); return; }
+    gapi.load('client', async () => {
+      try {
+        await gapi.client.init({ discoveryDocs:[DISCOVERY_DOC] });
+        resolve();
+      } catch(e){ reject(e); }
+    });
+  });
+}
+
+async function signIn() {
+  const client = google.accounts.oauth2.initTokenClient({
+    client_id: 'YOUR_GOOGLE_CLIENT_ID',
+    scope: SCOPES,
+    callback: async (resp) => {
+      if (resp.error) { updateSyncUI(false,'Connect Drive'); showToast('Sign-in cancelled'); return; }
+      driveConnected = true;
+      await loadFromDrive();
+      updateSyncUI(true,'Drive synced');
+      showToast('Connected to Google Drive ✓');
+    }
+  });
+  client.requestAccessToken();
+}
+
+async function loadFromDrive() {
+  try {
+    const res = await gapi.client.drive.files.list({ spaces:'appDataFolder', fields:'files(id,name)', q:`name='${DRIVE_FILE_NAME}'` });
+    const files = res.result.files;
+    if (files && files.length>0) {
+      driveFileId = files[0].id;
+      const content = await gapi.client.drive.files.get({ fileId:driveFileId, alt:'media' });
+      const remote = JSON.parse(content.body);
+      if (remote.logs && remote.logs.length >= state.logs.length) {
+        state = { exercises:remote.exercises||[], logs:remote.logs||[], schedule:remote.schedule||[] };
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+        renderAll();
+        showToast('Data loaded from Drive ✓');
+      }
+    } else {
+      await syncToDrive();
+    }
+  } catch(e) { showToast('Drive sync error'); }
+}
+
+async function syncToDrive() {
+  if (!driveConnected) return;
+  try {
+    const body = JSON.stringify(state);
+    if (driveFileId) {
+      await gapi.client.request({ path:`/upload/drive/v3/files/${driveFileId}`, method:'PATCH', params:{uploadType:'media'}, body });
+    } else {
+      const meta = await gapi.client.drive.files.create({ resource:{ name:DRIVE_FILE_NAME, parents:['appDataFolder'] }, fields:'id' });
+      driveFileId = meta.result.id;
+      await gapi.client.request({ path:`/upload/drive/v3/files/${driveFileId}`, method:'PATCH', params:{uploadType:'media'}, body });
+    }
+    updateSyncUI(true,'Drive synced');
+  } catch(e) { updateSyncUI(true,'Sync error'); }
+}
+
+load();
+</script>
+
+<!-- Google API scripts (needed for Drive sync) -->
+<script src="https://apis.google.com/js/api.js" async defer></script>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+</body>
+</html>
