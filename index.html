@@ -841,7 +841,7 @@ function initGapi() {
 
 async function signIn() {
   const client = google.accounts.oauth2.initTokenClient({
-    client_id: 'YOUR_GOOGLE_CLIENT_ID',
+    client_id: '853887275585-bnp91885vn4lferbjmlq3be63pu8mgp1.apps.googleusercontent.com',
     scope: SCOPES,
     callback: async (resp) => {
       if (resp.error) { updateSyncUI(false,'Connect Drive'); showToast('Sign-in cancelled'); return; }
